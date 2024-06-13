@@ -6,6 +6,9 @@ TODO: more description
 ## Contents:
 - [JWEB Definitions](#jweb-markdown-proposed-definitions)
 - [TWEB Protocol](#tweb-protocol-definitions)
+- - [Client to Server](#client-to-server)
+- - [Server to Client](#server-to-client)
+- - [Cupcakes](#cupcakes)
 
 
 ## JWEB Markdown (proposed) Definitions: 
@@ -93,7 +96,7 @@ The TWEB Protocol sends packets using [INET](https://stackoverflow.com/questions
 
 For example, if one would like to send a string, I would have to specify the size of this string because the receiver would not know. I could also supply an end character (0x00 or '\0'; in other words, just a byte equal to zero) but for this case I do not see a purpose for that because I will already be supplying the size.
 
-Think of an example buffer like this:
+Think of an example string buffer like this:
 
 `[ 05, 00, 'H', 'e', 'l', 'l', 'o' ]`
 
@@ -108,11 +111,64 @@ Now, what are those numbers? Both of those are the length of the string... just 
 | Opcode | Definition |
 | - | - |
 | 0x01 | [DNS Request](#dns-request) |
-| 0x02 | [Fetch Request](#fetch-request) |
-| 0x03 | [Put Request](#put-request) |
+| 0x02 | [FETCH Request](#fetch-request) |
+| 0x03 | [PUT Request](#put-request) |
 
 #### DNS Request
+A string with a single length byte out in front, for example:
 
-#### Fetch Request
+`[0A, 'T', 'h', 'b', 'o', 'p', '.', 'c', 'o', 'd', 'e']`
 
-#### Put Request
+A single byte for domain length is reasonable because it is simpler to not use domains with a string length longer than 255 characters.
+
+Thus, the entire packet would be:
+
+`[01, 0A, 'T', 'h', 'b', 'o', 'p', '.', 'c', 'o', 'd', 'e']`
+
+The DNS server only accepts the domain and returns an ip address. The resource path (thbop.code/this/stuff/here).
+
+#### FETCH Request
+The FETCH request communicates with the website server and provides a resource path defining the requested resource (e.g. website page). It also provides [cupcakes](#cupcakes) in a comma-separated dictionary.
+
+For simplicity, I am going to abstract strings to a more familiar form:
+
+`str[u16] = "Hello world!"`
+
+This is just custom notation to describe a string with an unsigned 16 bit integer (unsigned short) describing the string's length. In packet form, this string would be:
+
+`[0C, 00, 'H', 'e', 'l', 'l', 'o', ' ', 'w', 'o', 'r', 'l', 'd', '!']`
+
+Thus, the FETCH request can be defined as:
+
+```
+02                                            // OPCODE
+str[u16] = "resource/path/here"               // Resource path; '/' = 0x2F
+str[u16] = "key1=4353,key2=654234"            // Cupcakes; '=' = 0x3D and ',' = 0x2C
+```
+
+#### PUT Request
+
+The PUT request is similar to the [FETCH](#fetch-request) except that it sends arbitrary user input data (e.g. form data) to the server in a comma-separated list. The PUT request can be defined as:
+
+```
+03                                            // OPCODE
+str[u16] = "resource/path/here"               // Resource path; '/' = 0x2F
+str[u16] = "key1=4353,key2=654234"            // Input data; '=' = 0x3D and ',' = 0x2C
+str[u16] = "key1=4353,key2=654234"            // Cupcakes
+```
+
+### Server to Client
+#### Instructions
+| Opcode | Definition |
+| - | - |
+| 0x01 | [DNS Response](#dns-response) |
+| 0x02 | [FETCH Response](#fetch-response) |
+| 0x03 | [PUT Response](#put-response) |
+
+#### DNS Response
+
+#### FETCH Response
+
+#### PUT Response
+
+### Cupcakes
