@@ -92,19 +92,19 @@ The system will handle rendering directly, not translating to html for Chromium 
 
 ## TWEB Protocol Definitions:
 
-The TWEB Protocol sends packets using [INET](https://stackoverflow.com/questions/1593946/what-is-af-inet-and-why-do-i-need-it) (IPv4). Packets are arrays of bytes sent over the internet in this case (a.k.a. buffers). Python's fancy datatypes like strings, dictionaries, lists etc must be encoded to and properly decoded from bytes.
+The TWEB Protocol sends packets using [INET](https://stackoverflow.com/questions/1593946/what-is-af-inet-and-why-do-i-need-it) (IPv4). It is probably going to use port 4242 or some other four-digit number. Packets are arrays of bytes sent over the internet in this case (a.k.a. buffers). Python's fancy datatypes like strings, dictionaries, lists etc must be encoded to and properly decoded from bytes.
 
-For example, if one would like to send a string, I would have to specify the size of this string because the receiver would not know. I could also supply an end character (0x00 or '\0'; in other words, just a byte equal to zero) but for this case I do not see a purpose for that because I will already be supplying the size.
+For example, if one would like to send a string, I would have to specify the size of this string because the receiver would not know. I could also supply an end character (0x00 or '\0'; in other words, just a byte equal to zero) so that the reciever could iterate over the string till it finds the end character, but for this case I do not see a purpose for that because I will already be supplying the size.
 
 Think of an example string buffer like this:
 
 `[ 05, 00, 'H', 'e', 'l', 'l', 'o' ]`
 
-Ignoring those numbers at the beginning, note that every argument is a number. In C and in the case of packets, single character declarations are actually numbers (yes, '0' + '0' = 0x60 = 96; this is because the [ASCII code](https://images.saymedia-content.com/.image/t_share/MTc2MjU5OTkxNjc3MjQ4Njg1/what-are-ascii-codes.gif) for '0' = 0x30 = 48).
+Ignoring those numbers at the beginning, note that every argument is a number. In C and in the case of packets, single character declarations are actually numbers (yes, '0' + '0' = '`' = 0x60 = 96; this is because the [ASCII code](https://images.saymedia-content.com/.image/t_share/MTc2MjU5OTkxNjc3MjQ4Njg1/what-are-ascii-codes.gif) for '0' = 0x30 = 48).
 
 Also note that numbers of the format "\x00" (Python example) or 0x00 (C example) are in hexadecimal or base 16. Thus 0x10 = 16. (Colors are also hexadecimal values: #C0FFEE = 0xC0FFEE = 12,648,430.)
 
-Now, what are those numbers? Both of those are the length of the string... just in reversed order. Following [Big Endian](https://en.wikipedia.org/wiki/Endianness) logic, those bytes would appear like: `[ 00, 05, ... ]` so that if the [least significant byte](https://en.wikipedia.org/wiki/Bit_numbering) were to overflow (become greater than 0xFF = 255) then the most significant byte would increment. Herein lies the confusion: most computers are little endian, thus when the LsB overflows, the next byte (the one to the right / with +1 index value) increments. Thus, the LsB comes before the MsB. The reason I'm choosing to store a generic string length using 2 bytes instead of 1 byte is that 2 bytes can store unsigned integers (whole numbers) up to 65,535 instead of a single byte's miniscule 255.
+Now, what are those numbers? Both of those are the length of the string... just in reversed order. Following [big endian](https://en.wikipedia.org/wiki/Endianness) logic, those bytes would appear like: `[ 00, 05, ... ]` so that if the [least significant byte](https://en.wikipedia.org/wiki/Bit_numbering) were to overflow (become greater than 0xFF = 255) then the most significant byte would increment. Herein lies the confusion: most computers are little endian, thus when the LsB overflows, the next byte (the one to the right / with +1 index value) increments. Thus, the LsB comes before the MsB. The reason I'm choosing to store a generic string length using 2 bytes instead of 1 byte is that 2 bytes can store unsigned integers (whole numbers) up to 65,535 instead of a single byte's miniscule 255.
 
 ### Client to Server:
 #### Instructions
@@ -148,7 +148,7 @@ str[u16] = "key1=4353,key2=654234"            // Cupcakes; '=' = 0x3D and ',' = 
 
 #### PUT Request
 
-The PUT request is similar to the [FETCH](#fetch-request) except that it sends arbitrary user input data (e.g. form data) to the server in a comma-separated list. The PUT request can be defined as:
+The PUT request is similar to the [FETCH](#fetch-request) except that it sends arbitrary user input data (e.g. form data) to the server in a comma-separated list. The PUT request is defined as:
 
 ```
 03                                            // OPCODE
@@ -165,10 +165,46 @@ str[u16] = "key1=4353,key2=654234"            // Cupcakes
 | 0x02 | [FETCH Response](#fetch-response) |
 | 0x03 | [PUT Response](#put-response) |
 
+Server responses will usually follow the format of:
+
+```
+OPCODE
+ERROR CODE // one byte
+DATA
+```
+
+Here's a list of error codes:
+| Code | Error |
+| - | - |
+| 0x00 | Success |
+| 0x01 | Unknown failure |
+| 0x02 | DNS: Domain not found; WEBSERVER: Resource not found |
+
 #### DNS Response
+
+Here's an example of a DNS response:
+```
+01                                            // OPCODE
+u8                                            // Error code. "u8" means an unsigned byte
+u8, u8, u8, u8                                // IP address described as four bytes
+```
 
 #### FETCH Response
 
+Here's an example of a FETCH response:
+```
+02                                            // OPCODE
+u8                                            // Error code
+u8                                            // Amount of chunks
+u8                                            // Current chunk id
+str[u16] = "..."                              // Content
+str[u16] = "key1=packet_loss_pigeon"          // Cupcake setter (ONLY APPEARS ON THE LAST CHUNK!)
+```
+
+The server will send response packets in chunks of 1024 bytes (2^10), thus content and Cupcake setters (only appearing on the last chunk) must not, when combined, exceed 1020 bytes (again, if the current chunk is not the current chunk, only the content string is present).
+
 #### PUT Response
+
+Exactly the same to the FETCH response except it has a an opcode of 0x03.
 
 ### Cupcakes
