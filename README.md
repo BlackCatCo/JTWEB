@@ -11,7 +11,7 @@ TODO: more description
 - - [Cupcakes](#cupcakes)
 
 
-## JWEB Markdown (proposed) Definitions: 
+## JWEB Markdown (proposed and limited) Definitions: 
 ```
 // This is a comment... similar but unlike CSS comments
 def DOCUMENT { // All caps definitions are system overrides
@@ -208,3 +208,5 @@ The server will send response packets in chunks of 1024 bytes (2^10), thus conte
 Exactly the same to the FETCH response except it has a an opcode of 0x03.
 
 ### Cupcakes
+
+They're just cookies. For example, to model a simple transaction of a user logging in and staying logged in, User A sends a [PUT request](#put-request) to a server containing login information. The server processes this and returns with a [PUT response](#put-response) containing a cupcake with User A's authorization token. This cupcake containing the token is saved to the user's browser categorized by domain/ip address (of websites). Thus, the user stores and sends different cupcakes per website. Furthermore, whenever User A does any action on the website he logged-in to, the cupcake containing his token will also be sent with all his traffic and will properly authorize that all his actions belong to his particular account.
