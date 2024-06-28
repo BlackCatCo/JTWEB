@@ -1,30 +1,10 @@
-import socket
-import threading
+import jtweb
 
-def connection(conn, addr):
-    print(f'Connection received from {addr[0]}:{addr[1]}')
-    while True:
-        data = conn.recv(1024)
-        conn.send(b'Hello there!')
-        if not data: break
-        print(data.decode())
-    conn.close()
+app = jtweb.app()
 
-
-def main():
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.bind(('localhost', 4242))
-
-    print('Listening')
-
-    while True:
-        sock.listen()
-        conn, conn_addr = sock.accept()
-        threading.Thread(target=connection,args=(conn, conn_addr), daemon=True).start() 
-        
-
-    sock.close()
-
+@app.page('/')
+def test():
+    return 'Thbop returns'
 
 if __name__ == '__main__':
-    main()
+    app.run()
