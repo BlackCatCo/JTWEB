@@ -8,7 +8,7 @@ class app:
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     def page(self, route):
-        def wrapper(pg):
+        def wrapper(pg) -> str:
             self.pages[route] = pg
             def inner(*args, **kwargs):
                 return pg(*args, **kwargs)
@@ -17,16 +17,21 @@ class app:
     
     
     def connection(self, conn, addr):
-        print(f'Connection received from {addr[0]}:{addr[1]}')
+        client_str = f'{addr[0]}:{addr[1]}'
+        print(f'Connection received from {client_str}')
         while True:
             data = conn.recv(1024)
-            conn.send(b'Hello there!')
+            try:
+                sdata = self.pages[data.decode()]().encode()
+            except KeyError:
+                sdata = b'Not found!'
+            
+            conn.send(sdata)
             if not data: break
-            print('<', data.decode())
+            print(f'{client_str}: {data.decode()}')
         conn.close()
     
     def run(self, address: str = 'localhost', port: int = 4242):
-        print(self.pages)
         self.sock.bind((address, port))
         print('Listening')
         while True:
