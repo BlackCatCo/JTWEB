@@ -44,12 +44,12 @@ class app:
 
     # Takes in raw client -> server packet and returns chunks to send back to client
     def process_packet(self, client_str: str, data: bytes) -> list:
-        print(data)
+        error_code = 2 # Success
         if data[0] == 2: # Fetch request
             route, i = self._unpack_str(data, 1)
             cupcakes, i = self._unpack_str(data, i)
             if route == None:
-                pass # Error, invalid resource
+                error_code = 3
             else:
                 print(f'{client_str}: {route}')
             
@@ -57,8 +57,9 @@ class app:
                 res = self.pages[route]()
             except KeyError:
                 res = 'Error'
+                error_code = 4
 
-        return [self._pack_str(res)]
+        return [b'\x02'+error_code.to_bytes(1, 'little')+b'\x01\x00'+self._pack_str(res)+b'\x00\x00']
 
     
     def run(self, address: str = 'localhost', port: int = 4242):

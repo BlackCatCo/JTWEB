@@ -17,6 +17,6 @@ while True:
 
     data = sock.recv(1024)
     if not data: break
-    print('<', data.decode())
+    print('<', data)
 
 sock.close()
