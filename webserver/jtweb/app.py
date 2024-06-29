@@ -1,6 +1,10 @@
 import socket
 import threading
 
+from .utils import *
+from .request import *
+from .response import *
+
 
 class app:
     def __init__(self):
@@ -26,40 +30,37 @@ class app:
             except ConnectionResetError:
                 break
             
-            chunks = self.process_packet(client_str, data)
-            for c in chunks:
+            res = self.process_packet(Request(addr[0], addr[1], data))
+            for c in res.chunkify():
                 conn.send(c)
             # print(f'{client_str}: {data.decode()}')
         print(f'{client_str} disconnected!')
         conn.close()
     
-    def _unpack_str(self, data: bytes, start: int):
-        l = int.from_bytes(data[start:start+2], 'little')
-        if l == 0: return None, start+2
-        return data[start+2:start+l+2].decode(), start+2+l
-    
-    def _pack_str(self, string: str):
-        return len(string).to_bytes(2, 'little') + string.encode() # Might want to change to big
 
 
     # Takes in raw client -> server packet and returns chunks to send back to client
-    def process_packet(self, client_str: str, data: bytes) -> list:
-        error_code = 2 # Success
-        if data[0] == 2: # Fetch request
-            route, i = self._unpack_str(data, 1)
-            cupcakes, i = self._unpack_str(data, i)
-            if route == None:
-                error_code = 3
-            else:
-                print(f'{client_str}: {route}')
-            
-            try:
-                res = self.pages[route]()
-            except KeyError:
-                res = 'Error'
-                error_code = 4
+    def process_packet(self, req: Request) -> Response:
+        res = Response() # Will be passed into the page function
+        res.opcode = req.get_opcode() # Set return opcode... hopefully it's valid :)
 
-        return [b'\x02'+error_code.to_bytes(1, 'little')+b'\x01\x00'+self._pack_str(res)+b'\x00\x00']
+        if req.get_opcode() == 2: # Fetch request
+            if req.route == None:
+                res.error_code = 3
+                res.data = 'You dun did it now! Error 3' # Probably only technical users (aspiring exploiters) could get this message
+            else:
+                req.print_action(req.route)
+            
+                try:
+                    res.data = self.pages[req.route]()
+                except KeyError:
+                    res.data = 'Error 4'
+                    res.error_code = 4
+        else:
+            res.error_code = 0
+            res.data = 'You dun did it now! Error 0'
+            # Maybe do some other stuff...
+        return res
 
     
     def run(self, address: str = 'localhost', port: int = 4242):

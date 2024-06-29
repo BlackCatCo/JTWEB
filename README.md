@@ -176,9 +176,12 @@ DATA
 Here's a list of error codes:
 | Code | Error |
 | - | - |
-| 0x00 | Success |
-| 0x01 | Unknown failure |
-| 0x02 | DNS: Domain not found; WEBSERVER: Resource not found |
+| 0x00 | Opcode invalid or not found |
+| 0x01 | DNS resource not found |
+| 0x02 | Success |
+| 0x03 | Empty route |
+| 0x04 | Route not found; the "404" response |
+| 0x05 | Response is too big, exceeding ~67 megabytes |
 
 #### DNS Response
 
@@ -195,10 +198,10 @@ Here's an example of a FETCH response:
 ```
 02                                            // OPCODE
 u8                                            // Error code
-u8                                            // Amount of chunks
-u8                                            // Current chunk id
+u16                                           // Amount of chunks
+u16                                           // Current chunk id; max is chunk_count-1
 str[u16] = "..."                              // Content
-str[u16] = "key1=packet_loss_pigeon"          // Cupcake setter (ONLY APPEARS ON THE LAST CHUNK!)
+str[u16] = "key1=packet_loss_pigeon"          // Cupcake setter
 ```
 
 The server will send response packets in chunks of 1024 bytes (2^10), thus content and Cupcake setters (only appearing on the last chunk) must not, when combined, exceed 1020 bytes (again, if the current chunk is not the current chunk, only the content string is present).

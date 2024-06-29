@@ -7,7 +7,7 @@ def test():
     return 'Thbop returns'
 
 @app.page('/bobbyj')
-def test():
+def test2():
     return 'Bobby J returns'
 
 if __name__ == '__main__':
