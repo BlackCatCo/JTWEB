@@ -20,16 +20,46 @@ class app:
         client_str = f'{addr[0]}:{addr[1]}'
         print(f'Connection received from {client_str}')
         while True:
-            data = conn.recv(1024)
             try:
-                sdata = self.pages[data.decode()]().encode()
-            except KeyError:
-                sdata = b'Not found!'
+                data = conn.recv(1024)
+                if not data: break
+            except ConnectionResetError:
+                break
             
-            conn.send(sdata)
-            if not data: break
-            print(f'{client_str}: {data.decode()}')
+            chunks = self.process_packet(client_str, data)
+            for c in chunks:
+                conn.send(c)
+            # print(f'{client_str}: {data.decode()}')
+        print(f'{client_str} disconnected!')
         conn.close()
+    
+    def _unpack_str(self, data: bytes, start: int):
+        l = int.from_bytes(data[start:start+2], 'little')
+        if l == 0: return None, start+2
+        return data[start+2:start+l+2].decode(), start+2+l
+    
+    def _pack_str(self, string: str):
+        return len(string).to_bytes(2, 'little') + string.encode() # Might want to change to big
+
+
+    # Takes in raw client -> server packet and returns chunks to send back to client
+    def process_packet(self, client_str: str, data: bytes) -> list:
+        print(data)
+        if data[0] == 2: # Fetch request
+            route, i = self._unpack_str(data, 1)
+            cupcakes, i = self._unpack_str(data, i)
+            if route == None:
+                pass # Error, invalid resource
+            else:
+                print(f'{client_str}: {route}')
+            
+            try:
+                res = self.pages[route]()
+            except KeyError:
+                res = 'Error'
+
+        return [self._pack_str(res)]
+
     
     def run(self, address: str = 'localhost', port: int = 4242):
         self.sock.bind((address, port))
