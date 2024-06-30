@@ -34,7 +34,7 @@ class app:
             for c in res.chunkify():
                 conn.send(c)
             # print(f'{client_str}: {data.decode()}')
-        print(f'{client_str} disconnected!')
+        print(f'{client_str} disconnected')
         conn.close()
     
 

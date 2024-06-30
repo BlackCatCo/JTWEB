@@ -1,24 +1,29 @@
-import socket
+import jtclient as jtc
+from tkinter import *
+from tkinter import ttk
 
-def pack_str(string: str):
-    return len(string).to_bytes(2, 'little') + string.encode() # Might want to change to big
+app = jtc.app()
 
-
-
-sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-sock.connect(('localhost', 4545))
+app.connect('127.0.0.1')
 
 
-while True:
-    sdata = b'\x01\x0Bcomputer.jt' #input('> ')
-    if sdata == 'quit': break
-    # sock.send(b'\x02'+pack_str(sdata)+b'\x00\x00')
-    sock.send(sdata)
 
-    data = sock.recv(1024)
-    if not data: break
-    print('<', data)
-    break
+root = Tk()
+root.geometry('1200x800')
 
-sock.close()
+frm = ttk.Frame(root, padding=10)
+frm.grid()
+
+content = ttk.Label(frm)
+content.grid(column=0, row=1)
+
+
+def refresh():
+    app.request('/')
+    content.config(text=app.get_incoming_text())
+
+ttk.Button(frm, text="Refresh", command=refresh).grid(column=0, row=0)
+
+
+
+root.mainloop()
