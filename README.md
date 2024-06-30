@@ -189,7 +189,8 @@ Here's an example of a DNS response:
 ```
 01                                            // OPCODE
 u8                                            // Error code. "u8" means an unsigned byte
-u8, u8, u8, u8                                // IP address described as four bytes
+u32                                           // IP address described as four bytes
+u16                                           // Port
 ```
 
 #### FETCH Response

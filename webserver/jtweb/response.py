@@ -27,19 +27,19 @@ class Response:
         if chunk_count > 0xFFFF: # Content length exceeds 0xFFFF * 1024 = 67,107,840 characters/bytes
             self.error_code = 5
             return [
-                self.opcode.to_bytes(1, 'little') +
-                self.error_code.to_bytes(1, 'little') + 
-                b'\x01\x00\x00\x00' + # If changing to Big Endian, remember this line is hardcoded Little Endian!!
+                self.opcode.to_bytes(1, 'big') +
+                self.error_code.to_bytes(1, 'big') + 
+                b'\x00\x01\x00\x00' + 
                 pack_str('Server send you too big file (equal to or greater than ~67 megabytes). S-s-sorry!') +
                 '\x00\x00'
             ]
             
         data_len = 1024-8-len(raw_cupcakes) # Data per chunk length, subtracting metadata and cupcakes
         chunks = [ 
-            self.opcode.to_bytes(1, 'little')                + # Your eyes are not deceiving you, this is a column of plus signs
-            self.error_code.to_bytes(1, 'little')            + 
-            l.to_bytes(2, 'little')                          + 
-            i.to_bytes(2, 'little')                          +
+            self.opcode.to_bytes(1, 'big')                   + # Your eyes are not deceiving you, this is a column of plus signs
+            self.error_code.to_bytes(1, 'big')               + 
+            l.to_bytes(2, 'big')                             + 
+            i.to_bytes(2, 'big')                             +
             pack_str( self.data[i*data_len:(i+1)*data_len] ) +
             raw_cupcakes
             for i in range(chunk_count)
