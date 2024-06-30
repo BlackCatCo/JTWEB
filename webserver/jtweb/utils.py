@@ -8,3 +8,8 @@ def pack_str(string: str):
     return len(string).to_bytes(2, 'big') + string.encode()
 
 
+def pack_dict(dictionary: dict) -> bytes:
+    data = ''
+    for k, v in dictionary.items():
+        data += k+'='+v+','
+    return pack_str( data.strip(',') )

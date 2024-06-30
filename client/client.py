@@ -6,8 +6,6 @@ app = jtc.app()
 
 app.connect('127.0.0.1')
 
-
-
 root = Tk()
 root.geometry('1200x800')
 
@@ -23,7 +21,5 @@ def refresh():
     content.config(text=app.get_incoming_text())
 
 ttk.Button(frm, text="Refresh", command=refresh).grid(column=0, row=0)
-
-
 
 root.mainloop()

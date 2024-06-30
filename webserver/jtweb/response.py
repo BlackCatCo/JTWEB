@@ -3,22 +3,29 @@ from math import ceil
 from .utils import *
 
 
-# Models a response to the client
 class Response:
+    '''
+    Models a response to the client
+    '''
     def __init__(self):
+        '''
+        Initializes the response
+        '''
         self.error_code = 2 # Success
         self.opcode: int
 
         self.data: str # Will be converted into chunks
-        self.cupcakes: dict
+        self.cupcakes = {}
 
     
-    def pack_cupcakes(self) -> bytes:
-        return b''
 
-    # Chunky milk: https://youtu.be/k0hKMDMWYwU?si=Vi5Vvu9aKSddxDs0&t=7
-    def chunkify(self):
-        raw_cupcakes = self.pack_cupcakes()
+    def chunkify(self): # -> ChunkyMilk
+        '''
+        Chunky milk: https://youtu.be/k0hKMDMWYwU?si=Vi5Vvu9aKSddxDs0&t=7
+
+        Does some math and hopefully divides the reponse packets into chunks, returning the chunks.
+        '''
+        raw_cupcakes = pack_dict(self.cupcakes)
 
         guess_len: int = ceil(( len(self.data) + len(raw_cupcakes) ) / 1024)
         l: int = len(self.data) + 8*guess_len + len(raw_cupcakes) # 8 = len(opcode) + len(error_code) + len(chunk_count) + len(chunk_id) + len(data_str_len_indicator); required for each chunk

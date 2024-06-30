@@ -1,7 +1,7 @@
 # JTWEB
 The world wide web reimagined. 
 
-TODO: more description 
+This is a general description of the JWEB (proposed and limited) definitions and the TWEB protocol. If you want interface/function documentation, check each function in /webserver/jtweb/ and /client/jtclient/
 
 ## Contents:
 - [JWEB Definitions](#jweb-markdown-proposed-definitions)
