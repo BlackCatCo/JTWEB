@@ -13,16 +13,55 @@ class app:
         '''
         self.sock: socket.socket
 
+
         # self.open_connections = []
 
         self.cupcakes = {}
 
         self._active_out_data = b''
         self._active_in_data = b''
+        self._new_in = False
+
+        self._dns_active_out_data = b''
+        self._dns_active_in_data = b''
+        self._dns_new_in = False
     
-    def connect(self, address: str, port: int = 4242):
+    def setup_dns(self, dns_server_address: str, dns_server_port: int):
         '''
-        Opens a connection to a given ip address and port and starts a new thread to handle the connection. Check self._connection()
+        Sets up and enables use of a socket to communicate with the chosen DNS server and port
+        '''
+        self.dns_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+        self.dns_sock.connect((dns_server_address, dns_server_port))
+        threading.Thread(target=self._dns_connection,args=(), daemon=True).start()
+    
+    def _dns_connection(self):
+        '''
+        Handles a dns connection, this should only be run in a thread.
+        '''
+
+        while True:
+            if self._dns_active_out_data:
+                self.dns_sock.send(self._dns_active_out_data)
+                self._dns_active_out_data = b''
+
+                self._dns_active_in_data = self.dns_sock.recv(1024)
+                self._dns_new_in = True
+                if not self._dns_active_in_data: break
+        self.dns_sock.close()
+
+    def dns_request(self, domain: str):
+        self._dns_active_out_data = b'\x01' + pack_str8(domain)
+    
+    def get_incoming_dns(self):
+        while not self._dns_new_in: pass
+        self._dns_new_in = False
+
+        return unpack_str8(self._dns_active_in_data, 2)[0], int.from_bytes(self._dns_active_in_data[-3:-1], 'big')
+    
+    def connect(self, address: str):
+        '''
+        Uses DNS to look up a domain, receive ip and port, and start a new thread to handle the connection. Check self._connection()
 
         WARNING: Do not open another connection without first closing the current connection. I, Thbop, will add support for multiple connections later...
 
@@ -30,8 +69,13 @@ class app:
         
         Additionally, if a user wishes to close a page, that connection/thread should be terminated via self.disconnect()
         '''
+        self.dns_request(address)
+        ip, port = self.get_incoming_dns()
+
+        print(ip, port)
+
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock.connect((address, port))
+        self.sock.connect((ip, port))
         threading.Thread(target=self._connection,args=(), daemon=True).start()
         # self.open_connections.append((address, port))
 
@@ -61,6 +105,8 @@ class app:
         '''
         After a request, this returns a string containing the plaintext that will be parsed and rendered by JWEB.
         '''
+        while not self._new_in: pass
+        self._new_in = False
         return unpack_str(self._active_in_data, 6)[0]
 
 
@@ -75,6 +121,7 @@ class app:
                 self._active_out_data = b''
 
                 self._active_in_data = self.sock.recv(1024) # Assuming only one chunk
+                self._new_in = True
                 if not self._active_in_data: break
         self.disconnect()
 

@@ -17,7 +17,19 @@ class Response:
         self.data: str # Will be converted into chunks
         self.cupcakes = {}
 
-    
+        self.dns_data = {}
+
+    def dns(self):
+        '''
+        Package into a proper DNS response and return packet bytes
+        '''
+
+        return (
+            b'\x01'                                  +
+            self.error_code.to_bytes(1, 'big')       +
+            pack_str8( self.dns_data['address'] )     +
+            self.dns_data['port'].to_bytes(2, 'big')
+        )
 
     def chunkify(self): # -> ChunkyMilk
         '''

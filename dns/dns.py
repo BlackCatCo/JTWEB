@@ -2,8 +2,8 @@ import socket
 import threading
 import json
 
-import os
-
+# import os
+# os.chdir(os.path.dirname(__file__))
 
 def ip_to_bytes(ip: str) -> bytes:
     ip_b = b''
@@ -19,7 +19,7 @@ def unpack_str(data: bytes, start: int):
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 
-os.chdir(os.path.dirname(__file__))
+
 with open('domains.json') as f:
     domains = json.load(f)
 

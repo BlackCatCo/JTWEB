@@ -2,6 +2,8 @@ import jtweb
 
 app = jtweb.app()
 
+app.setup_dns()
+
 @app.page('/')
 def test():
     return 'Thbop returns'
