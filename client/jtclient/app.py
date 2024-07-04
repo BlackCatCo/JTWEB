@@ -11,7 +11,7 @@ class app:
         '''
         Initializes the app interface
         '''
-        self.sock: socket.socket
+        self.sock: socket.socket = None
 
 
         # self.open_connections = []
@@ -57,7 +57,11 @@ class app:
         while not self._dns_new_in: pass
         self._dns_new_in = False
 
-        return unpack_str8(self._dns_active_in_data, 2)[0], int.from_bytes(self._dns_active_in_data[-3:-1], 'big')
+        domain, i = unpack_str8(self._dns_active_in_data, 2)
+        ip = int.from_bytes(self._dns_active_in_data[i:i+2], 'big')
+
+
+        return domain, ip
     
     def connect(self, address: str):
         '''
@@ -72,8 +76,9 @@ class app:
         self.dns_request(address)
         ip, port = self.get_incoming_dns()
 
-        print(ip, port)
+        print(f'Connecting to {ip}:{port}')
 
+        if self.sock: self.sock.close()
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.connect((ip, port))
         threading.Thread(target=self._connection,args=(), daemon=True).start()
