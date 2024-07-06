@@ -8,16 +8,16 @@ app.setup_dns()
 def test():
     return '''Hello World!
 
-[Cool Page](/bobbyj) <---- Check this out!!
+[Cool Page](thbop.code/bobbyj) <---- Check this out!!
 
-[Error 4 page](/asdfasdf) <---- Don't click
+[Error 4 page](thbop.code/asdfasdf) <---- Don't click
 '''
 
 @app.page('/bobbyj')
 def test2():
     return '''Bobby J returns
 
-[back](/)
+[back](thbop.code/)
 '''
 
 if __name__ == '__main__':

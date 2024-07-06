@@ -110,6 +110,8 @@ class app:
 
         self.txtboxes = TextBoxes()
 
+        self.link_click_action = None
+
     @property
     def title(self):
         return self._title
@@ -172,6 +174,9 @@ class app:
                 if isinstance(seg, Link):
                     txtsurf = seg.surf
                     seg.hover = txtsurf.get_rect(topleft=render_pos).collidepoint(pygame.mouse.get_pos())
+                    if seg.hover and pygame.mouse.get_pressed()[0] and self.link_click_action != None:
+                        self.link_click_action(seg.target)
+
 
                 else:
                     txtsurf = seg
