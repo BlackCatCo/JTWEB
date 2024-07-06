@@ -2,8 +2,8 @@ import pygame
 from pygame.math import Vector2 as vec2
 import os
 
-pygame.init()
 os.chdir(os.path.dirname(__file__))
+pygame.init()
 
 FONT_SIZE = 18
 FONT = pygame.font.Font('Consolas-Font/CONSOLA.TTF', FONT_SIZE)

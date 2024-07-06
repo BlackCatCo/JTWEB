@@ -1,4 +1,6 @@
 import jtweb
+import os
+os.chdir(os.path.dirname(__file__))
 
 app = jtweb.app()
 
