@@ -76,7 +76,7 @@ class app:
         self.dns_request(address)
         ip, port = self.get_incoming_dns()
 
-        print(f'Connecting to {ip}:{port}')
+        # print(f'Connecting to {ip}:{port}')
 
         if self.sock: self.sock.close()
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
